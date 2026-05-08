@@ -1,55 +1,47 @@
-"""Extract all icons from Windows system DLLs/EXEs into public/icons/<name>/ folders."""
+"""
+Extract icons from DLL/EXE/CPL/MUN files into public/icons/{version}/{dll_name}/.
 
+Usage:
+    python scripts/extract-icons.py --version win11 --dll-dir dlls/win11/
+
+Tries icoextract (PE format) first, then falls back to wrestool (NE format)
+for legacy binaries like those from Windows 3.1/95/98.
+"""
+
+import argparse
 import os
 import re
 import subprocess
 import sys
+from pathlib import Path
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ICONS_DIR = os.path.join(BASE_DIR, "public", "icons")
-
-# (display_name, source_path) — display_name is used for the output folder
-SOURCES = []
-
-# Group A — .mun files in SystemResources
-GROUP_A = [
-    "imageres.dll", "shell32.dll", "accessibilitycpl.dll", "ddores.dll",
-    "moricons.dll", "mmcndmgr.dll", "mmres.dll", "netcenter.dll",
-    "netshell.dll", "networkexplorer.dll", "sensorscpl.dll", "wmploc.dll",
-    "wpdshext.dll", "compstui.dll", "ieframe.dll", "dmdskres.dll",
-    "dsuiext.dll", "mstscax.dll", "wiashext.dll", "comres.dll",
-    "actioncentercpl.dll", "aclui.dll", "mstsc.exe",
-]
-for name in GROUP_A:
-    folder = os.path.splitext(name)[0]  # strip extension for folder name
-    mun_file = name + ".mun"  # e.g. imageres.dll.mun
-    src = os.path.join(r"C:\Windows\SystemResources", mun_file)
-    SOURCES.append((folder, src))
-
-# Group B — files in System32
-GROUP_B = [
-    "pifmgr.dll", "setupapi.dll", "autoplay.dll", "comctl32.dll",
-    "xwizards.dll", "ncpa.cpl", "url.dll",
-]
-for name in GROUP_B:
-    folder = os.path.splitext(name)[0]
-    src = os.path.join(r"C:\Windows\System32", name)
-    SOURCES.append((folder, src))
-
-# Group C — standalone executables
-SOURCES.append(("explorer", r"C:\Windows\explorer.exe"))
+BASE_DIR = Path(__file__).resolve().parent.parent
+SUPPORTED_EXTENSIONS = {".dll", ".exe", ".cpl", ".mun"}
 
 
-def get_icon_indices(source_path: str) -> list[int]:
-    """Run icolist and parse icon indices from its output."""
-    result = subprocess.run(
-        ["icolist", source_path],
-        capture_output=True, text=True, timeout=30,
-    )
+def find_source_files(dll_dir: Path) -> list[Path]:
+    """Return all extractable files in the given directory."""
+    files = []
+    for entry in sorted(dll_dir.iterdir()):
+        if entry.is_file() and entry.suffix.lower() in SUPPORTED_EXTENSIONS:
+            files.append(entry)
+    return files
+
+
+# ── icoextract backend ─────────────────────────────────────────────────────
+
+def icoextract_list(source: Path) -> list[int]:
+    """Run icolist and return icon indices."""
+    try:
+        result = subprocess.run(
+            ["icolist", str(source)],
+            capture_output=True, text=True, timeout=30,
+        )
+    except FileNotFoundError:
+        return []
     if result.returncode != 0:
         return []
 
-    # icolist output: "Index: 0    ID: 123(0x7b)    Offset: 0x..."
     indices = []
     for line in result.stdout.splitlines():
         m = re.match(r"^\s*Index:\s*(\d+)", line)
@@ -58,56 +50,152 @@ def get_icon_indices(source_path: str) -> list[int]:
     return indices
 
 
-def extract_icons(name: str, source_path: str) -> None:
-    """Extract all icons from a single source file."""
-    out_dir = os.path.join(ICONS_DIR, name)
-    os.makedirs(out_dir, exist_ok=True)
-
-    print(f"\n{'='*60}")
-    print(f"  {name}  ←  {source_path}")
-    print(f"{'='*60}")
-
-    if not os.path.isfile(source_path):
-        print(f"  ⚠  Source file not found, skipping.")
-        return
-
-    indices = get_icon_indices(source_path)
-    if not indices:
-        print(f"  ⚠  No icons found (or icolist failed), skipping.")
-        return
-
-    print(f"  Found {len(indices)} icon(s). Extracting...")
-    ok = 0
-    fail = 0
+def icoextract_extract(source: Path, out_dir: Path, indices: list[int]) -> int:
+    """Extract icons via icoextract. Returns count of successfully written files."""
+    count = 0
     for idx in indices:
-        out_file = os.path.join(out_dir, f"{idx}.ico")
+        out_file = out_dir / f"{idx}.ico"
         try:
             subprocess.run(
-                ["icoextract", source_path, out_file, "-n", str(idx)],
+                ["icoextract", str(source), str(out_file), "-n", str(idx)],
                 capture_output=True, text=True, timeout=15,
             )
-            if os.path.isfile(out_file) and os.path.getsize(out_file) > 0:
-                ok += 1
+            if out_file.is_file() and out_file.stat().st_size > 0:
+                count += 1
             else:
-                fail += 1
-        except Exception as e:
-            fail += 1
+                out_file.unlink(missing_ok=True)
+        except Exception:
+            out_file.unlink(missing_ok=True)
+    return count
 
-    print(f"  ✔ {ok} extracted, {fail} failed")
+
+# ── wrestool (icoutils) backend ────────────────────────────────────────────
+
+def wrestool_extract(source: Path, out_dir: Path) -> int:
+    """Extract icons via wrestool -x -t14 (icon resources). Returns count."""
+    try:
+        result = subprocess.run(
+            ["wrestool", "-x", "-t14", str(source)],
+            capture_output=True, timeout=60,
+        )
+    except FileNotFoundError:
+        print("    wrestool not found — install icoutils to handle NE-format DLLs")
+        return 0
+    if result.returncode != 0 or not result.stdout:
+        return 0
+
+    # wrestool dumps concatenated ICO data to stdout; split on ICO magic bytes.
+    # Each ICO file starts with bytes 00 00 01 00.
+    raw = result.stdout
+    ico_magic = b"\x00\x00\x01\x00"
+    parts: list[bytes] = []
+    start = raw.find(ico_magic)
+    while start != -1:
+        next_start = raw.find(ico_magic, start + 4)
+        if next_start == -1:
+            parts.append(raw[start:])
+        else:
+            parts.append(raw[start:next_start])
+        start = next_start
+
+    count = 0
+    for i, data in enumerate(parts):
+        out_file = out_dir / f"{i}.ico"
+        out_file.write_bytes(data)
+        if out_file.stat().st_size > 0:
+            count += 1
+        else:
+            out_file.unlink(missing_ok=True)
+    return count
 
 
-def main():
-    print(f"Output directory: {ICONS_DIR}")
-    print(f"Total sources: {len(SOURCES)}")
+# ── main extraction logic ──────────────────────────────────────────────────
 
-    for name, src in SOURCES:
+def extract_icons(source: Path, out_dir: Path) -> int:
+    """Extract icons from a single file. Returns the number of icons extracted."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    # Try icoextract first (works with PE-format binaries)
+    indices = icoextract_list(source)
+    if indices:
+        count = icoextract_extract(source, out_dir, indices)
+        if count > 0:
+            return count
+
+    # Fallback to wrestool for NE-format or other legacy binaries
+    return wrestool_extract(source, out_dir)
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Extract icons from DLL/EXE/CPL/MUN files."
+    )
+    parser.add_argument(
+        "--version", required=True,
+        help="Version label for output directory (e.g. win98, win11)",
+    )
+    parser.add_argument(
+        "--dll-dir", required=True, type=Path,
+        help="Directory containing DLL/EXE/CPL/MUN files to extract from",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> None:
+    args = parse_args(argv)
+    version: str = args.version
+    dll_dir: Path = Path(args.dll_dir).resolve()
+
+    if not dll_dir.is_dir():
+        print(f"Error: --dll-dir '{dll_dir}' is not a directory.", file=sys.stderr)
+        sys.exit(1)
+
+    icons_base = BASE_DIR / "public" / "icons" / version
+    sources = find_source_files(dll_dir)
+
+    if not sources:
+        print(f"No supported files found in {dll_dir}")
+        sys.exit(1)
+
+    print(f"Version:    {version}")
+    print(f"DLL dir:    {dll_dir}")
+    print(f"Output dir: {icons_base}")
+    print(f"Files:      {len(sources)}")
+
+    summary: list[tuple[str, int]] = []
+
+    for source in sources:
+        dll_name = source.stem.lower()
+        out_dir = icons_base / dll_name
+
+        print(f"\n{'='*60}")
+        print(f"  {dll_name}  ←  {source.name}")
+        print(f"{'='*60}")
+
         try:
-            extract_icons(name, src)
+            count = extract_icons(source, out_dir)
         except Exception as e:
-            print(f"  ✖ Error processing {name}: {e}")
+            print(f"  ✖ Error: {e}")
+            count = 0
 
+        if count > 0:
+            print(f"  ✔ {count} icon(s) extracted")
+        else:
+            print(f"  ⚠ No icons extracted")
+
+        summary.append((dll_name, count))
+
+    # Print summary
+    total = sum(c for _, c in summary)
     print(f"\n{'='*60}")
-    print("Done!")
+    print(f"  Summary for '{version}'")
+    print(f"{'='*60}")
+    for name, count in summary:
+        status = f"{count:>4} icons" if count > 0 else "   –"
+        print(f"  {name:<30} {status}")
+    print(f"{'─'*60}")
+    print(f"  {'Total':<30} {total:>4} icons")
+    print(f"{'='*60}")
 
 
 if __name__ == "__main__":

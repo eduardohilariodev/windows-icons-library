@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "icons:extract": "python scripts/extract-icons.py",
+    "icons:index": "python scripts/build-index.py"
   },
   "dependencies": {
     "98.css": "^0.1.21",

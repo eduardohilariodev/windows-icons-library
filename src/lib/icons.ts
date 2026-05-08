@@ -1,3 +1,5 @@
+import { WINDOWS_VERSIONS } from "./versions";
+
 export interface IconEntry {
   id: string;
   name: string;
@@ -7,6 +9,8 @@ export interface IconEntry {
   file: string;
   tags: string[];
   description: string;
+  version: string;
+  versionLabel: string;
 }
 
 export interface DllGroup {
@@ -34,4 +38,39 @@ export function groupByDll(icons: IconEntry[]): DllGroup[] {
   return Array.from(groups.values()).sort((a, b) =>
     a.dll.localeCompare(b.dll)
   );
+}
+
+export interface VersionGroup {
+  version: string;
+  versionLabel: string;
+  dllGroups: DllGroup[];
+}
+
+export function groupByVersion(icons: IconEntry[]): VersionGroup[] {
+  const versionOrder = WINDOWS_VERSIONS.map((v) => v.slug);
+  const groups = new Map<string, IconEntry[]>();
+
+  for (const icon of icons) {
+    if (!groups.has(icon.version)) {
+      groups.set(icon.version, []);
+    }
+    groups.get(icon.version)!.push(icon);
+  }
+
+  const sortedKeys = Array.from(groups.keys()).sort((a, b) => {
+    const ai = versionOrder.indexOf(a);
+    const bi = versionOrder.indexOf(b);
+    return (ai === -1 ? Infinity : ai) - (bi === -1 ? Infinity : bi);
+  });
+
+  return sortedKeys.map((version) => {
+    const versionIcons = groups.get(version)!;
+    const versionLabel =
+      versionIcons[0]?.versionLabel ?? version;
+    return {
+      version,
+      versionLabel,
+      dllGroups: groupByDll(versionIcons),
+    };
+  });
 }
