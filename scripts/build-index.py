@@ -34,38 +34,57 @@ VERSION_LABELS = OrderedDict([
 ])
 
 DLL_PATHS = {
-    "imageres": {"file": "imageres.dll", "path": "%SystemRoot%\\System32\\imageres.dll"},
-    "shell32": {"file": "shell32.dll", "path": "%SystemRoot%\\System32\\shell32.dll"},
-    "pifmgr": {"file": "pifmgr.dll", "path": "%SystemRoot%\\System32\\pifmgr.dll"},
-    "explorer": {"file": "explorer.exe", "path": "%SystemRoot%\\explorer.exe"},
-    "accessibilitycpl": {"file": "accessibilitycpl.dll", "path": "%SystemRoot%\\System32\\accessibilitycpl.dll"},
-    "ddores": {"file": "ddores.dll", "path": "%SystemRoot%\\System32\\ddores.dll"},
-    "moricons": {"file": "moricons.dll", "path": "%SystemRoot%\\System32\\moricons.dll"},
-    "mmcndmgr": {"file": "mmcndmgr.dll", "path": "%SystemRoot%\\System32\\mmcndmgr.dll"},
-    "mmres": {"file": "mmres.dll", "path": "%SystemRoot%\\System32\\mmres.dll"},
-    "netcenter": {"file": "netcenter.dll", "path": "%SystemRoot%\\System32\\netcenter.dll"},
-    "netshell": {"file": "netshell.dll", "path": "%SystemRoot%\\System32\\netshell.dll"},
-    "networkexplorer": {"file": "networkexplorer.dll", "path": "%SystemRoot%\\System32\\networkexplorer.dll"},
-    "pnidui": {"file": "pnidui.dll", "path": "%SystemRoot%\\System32\\pnidui.dll"},
-    "sensorscpl": {"file": "sensorscpl.dll", "path": "%SystemRoot%\\System32\\sensorscpl.dll"},
-    "setupapi": {"file": "setupapi.dll", "path": "%SystemRoot%\\System32\\setupapi.dll"},
-    "wmploc": {"file": "wmploc.dll", "path": "%SystemRoot%\\System32\\wmploc.dll"},
-    "wpdshext": {"file": "wpdshext.dll", "path": "%SystemRoot%\\System32\\wpdshext.dll"},
-    "compstui": {"file": "compstui.dll", "path": "%SystemRoot%\\System32\\compstui.dll"},
-    "ieframe": {"file": "ieframe.dll", "path": "%SystemRoot%\\System32\\ieframe.dll"},
-    "dmdskres": {"file": "dmdskres.dll", "path": "%SystemRoot%\\System32\\dmdskres.dll"},
-    "dsuiext": {"file": "dsuiext.dll", "path": "%SystemRoot%\\System32\\dsuiext.dll"},
-    "mstscax": {"file": "mstscax.dll", "path": "%SystemRoot%\\System32\\mstscax.dll"},
-    "wiashext": {"file": "wiashext.dll", "path": "%SystemRoot%\\System32\\wiashext.dll"},
-    "comres": {"file": "comres.dll", "path": "%SystemRoot%\\System32\\comres.dll"},
-    "mstsc": {"file": "mstsc.exe", "path": "%SystemRoot%\\System32\\mstsc.exe"},
-    "actioncentercpl": {"file": "actioncentercpl.dll", "path": "%SystemRoot%\\System32\\actioncentercpl.dll"},
-    "aclui": {"file": "aclui.dll", "path": "%SystemRoot%\\System32\\aclui.dll"},
-    "autoplay": {"file": "autoplay.dll", "path": "%SystemRoot%\\System32\\autoplay.dll"},
-    "comctl32": {"file": "comctl32.dll", "path": "%SystemRoot%\\System32\\comctl32.dll"},
-    "xwizards": {"file": "xwizards.dll", "path": "%SystemRoot%\\System32\\xwizards.dll"},
-    "ncpa": {"file": "ncpa.cpl", "path": "%SystemRoot%\\System32\\ncpa.cpl"},
-    "url": {"file": "url.dll", "path": "%SystemRoot%\\System32\\url.dll"},
+    # Legacy (Win 3.1+)
+    "progman": {"file": "progman.exe", "path": "%SystemRoot%\\progman.exe", "desc": "Program Manager — general category icons"},
+    "moricons": {"file": "moricons.dll", "path": "%SystemRoot%\\System32\\moricons.dll", "desc": "Icons for popular 3rd-party DOS apps"},
+    # Shell (Win 95+)
+    "shell32": {"file": "shell32.dll", "path": "%SystemRoot%\\System32\\shell32.dll", "desc": "Core shell icons — folders, drives, actions"},
+    "explorer": {"file": "explorer.exe", "path": "%SystemRoot%\\explorer.exe", "desc": "Windows Explorer-specific icons"},
+    "pifmgr": {"file": "pifmgr.dll", "path": "%SystemRoot%\\System32\\pifmgr.dll", "desc": "DOS/PIF shortcut icons"},
+    "mshtml": {"file": "mshtml.dll", "path": "%SystemRoot%\\System32\\mshtml.dll", "desc": "Internet Explorer HTML rendering icons"},
+    # Win XP+
+    "ieframe": {"file": "ieframe.dll", "path": "%SystemRoot%\\System32\\ieframe.dll", "desc": "Internet Explorer frame & toolbar icons"},
+    "xpsp2res": {"file": "xpsp2res.dll", "path": "%SystemRoot%\\System32\\xpsp2res.dll", "desc": "Security Center & SP2 feature icons"},
+    "compstui": {"file": "compstui.dll", "path": "%SystemRoot%\\System32\\compstui.dll", "desc": "Printing & color composition UI icons"},
+    "wmploc": {"file": "wmploc.dll", "path": "%SystemRoot%\\System32\\wmploc.dll", "desc": "Windows Media Player icons"},
+    "netshell": {"file": "netshell.dll", "path": "%SystemRoot%\\System32\\netshell.dll", "desc": "Network connection & adapter icons"},
+    "mmcndmgr": {"file": "mmcndmgr.dll", "path": "%SystemRoot%\\System32\\mmcndmgr.dll", "desc": "Management Console snap-in icons"},
+    # Vista+
+    "imageres": {"file": "imageres.dll", "path": "%SystemRoot%\\System32\\imageres.dll", "desc": "Primary icon store — devices, actions, status"},
+    "ddores": {"file": "ddores.dll", "path": "%SystemRoot%\\System32\\ddores.dll", "desc": "Devices & Printers icons"},
+    "setupapi": {"file": "setupapi.dll", "path": "%SystemRoot%\\System32\\setupapi.dll", "desc": "Device driver & setup icons"},
+    # Win 7+
+    "accessibilitycpl": {"file": "accessibilitycpl.dll", "path": "%SystemRoot%\\System32\\accessibilitycpl.dll", "desc": "Accessibility / Ease of Access icons"},
+    # Win 8+
+    "twinui": {"file": "twinui.dll", "path": "%SystemRoot%\\System32\\twinui.dll", "desc": "Modern UI / Metro app icons"},
+    # Win 10+
+    "pnidui": {"file": "pnidui.dll", "path": "%SystemRoot%\\System32\\pnidui.dll", "desc": "Network tray & status animations"},
+    "vault": {"file": "Vault.dll", "path": "%SystemRoot%\\System32\\Vault.dll", "desc": "Credential Manager / vault icons"},
+    "wdc": {"file": "wdc.dll", "path": "%SystemRoot%\\System32\\wdc.dll", "desc": "Windows Defender Center icons"},
+    "connect": {"file": "connect.dll", "path": "%SystemRoot%\\System32\\connect.dll", "desc": "Connect (cast/project) icons"},
+    "themecpl": {"file": "themecpl.dll", "path": "%SystemRoot%\\System32\\themecpl.dll", "desc": "Theme & personalization icons"},
+    "user32": {"file": "user32.dll", "path": "%SystemRoot%\\System32\\user32.dll", "desc": "Core USER subsystem icons"},
+    # Win 11
+    "twinui.pcshell": {"file": "twinui.pcshell.dll", "path": "%SystemRoot%\\System32\\twinui.pcshell.dll", "desc": "Start menu & taskbar icons"},
+    # Other Win11 DLLs
+    "aclui": {"file": "aclui.dll", "path": "%SystemRoot%\\System32\\aclui.dll", "desc": "Access control list editor icons"},
+    "autoplay": {"file": "autoplay.dll", "path": "%SystemRoot%\\System32\\autoplay.dll", "desc": "AutoPlay handler icons"},
+    "comctl32": {"file": "comctl32.dll", "path": "%SystemRoot%\\System32\\comctl32.dll", "desc": "Common controls library icons"},
+    "comres": {"file": "comres.dll", "path": "%SystemRoot%\\System32\\comres.dll", "desc": "COM+ resource icons"},
+    "dmdskres": {"file": "dmdskres.dll", "path": "%SystemRoot%\\System32\\dmdskres.dll", "desc": "Disk Management snap-in icons"},
+    "dsuiext": {"file": "dsuiext.dll", "path": "%SystemRoot%\\System32\\dsuiext.dll", "desc": "Active Directory UI extension icons"},
+    "mmres": {"file": "mmres.dll", "path": "%SystemRoot%\\System32\\mmres.dll", "desc": "Multimedia resource icons"},
+    "mstsc": {"file": "mstsc.exe", "path": "%SystemRoot%\\System32\\mstsc.exe", "desc": "Remote Desktop Connection icons"},
+    "mstscax": {"file": "mstscax.dll", "path": "%SystemRoot%\\System32\\mstscax.dll", "desc": "Remote Desktop ActiveX control icons"},
+    "ncpa": {"file": "ncpa.cpl", "path": "%SystemRoot%\\System32\\ncpa.cpl", "desc": "Network Connections control panel icons"},
+    "netcenter": {"file": "netcenter.dll", "path": "%SystemRoot%\\System32\\netcenter.dll", "desc": "Network and Sharing Center icons"},
+    "networkexplorer": {"file": "networkexplorer.dll", "path": "%SystemRoot%\\System32\\networkexplorer.dll", "desc": "Network Explorer icons"},
+    "sensorscpl": {"file": "sensorscpl.dll", "path": "%SystemRoot%\\System32\\sensorscpl.dll", "desc": "Sensors control panel icons"},
+    "url": {"file": "url.dll", "path": "%SystemRoot%\\System32\\url.dll", "desc": "Internet shortcut icons"},
+    "wiashext": {"file": "wiashext.dll", "path": "%SystemRoot%\\System32\\wiashext.dll", "desc": "Windows Image Acquisition shell extension icons"},
+    "wpdshext": {"file": "wpdshext.dll", "path": "%SystemRoot%\\System32\\wpdshext.dll", "desc": "Portable Devices shell extension icons"},
+    "xwizards": {"file": "xwizards.dll", "path": "%SystemRoot%\\System32\\xwizards.dll", "desc": "Extensible Wizards framework icons"},
+    "actioncentercpl": {"file": "actioncentercpl.dll", "path": "%SystemRoot%\\System32\\actioncentercpl.dll", "desc": "Action Center control panel icons"},
 }
 
 # Pre-compute version sort order for fast lookups
@@ -110,6 +129,7 @@ def scan_icons(icons_dir: Path, version_filter: str | None = None) -> List[Dict[
             dll_info = DLL_PATHS.get(dll_name)
             dll_file = dll_info["file"] if dll_info else f"{dll_name}.dll"
             dll_path = dll_info["path"] if dll_info else ""
+            dll_desc = dll_info.get("desc", "") if dll_info else ""
 
             for ico_file in sorted(dll_dir.glob("*.ico")):
                 resource_id_str = ico_file.stem
@@ -123,6 +143,7 @@ def scan_icons(icons_dir: Path, version_filter: str | None = None) -> List[Dict[
                     "name": f"{dll_name} #{resource_id_str}",
                     "dll": dll_file,
                     "dllPath": dll_path,
+                    "dllDescription": dll_desc,
                     "version": version,
                     "versionLabel": version_label,
                     "resourceId": resource_id,

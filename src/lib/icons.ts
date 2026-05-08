@@ -5,6 +5,7 @@ export interface IconEntry {
   name: string;
   dll: string;
   dllPath: string;
+  dllDescription: string;
   resourceId: number;
   file: string;
   tags: string[];
