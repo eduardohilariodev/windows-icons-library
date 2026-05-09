@@ -3,19 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3001",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 3001",
     "lint": "eslint",
     "icons:extract": "python scripts/extract-icons.py",
     "icons:index": "python scripts/build-index.py"
   },
   "dependencies": {
+    "@radix-ui/react-context-menu": "^2.2.16",
     "98.css": "^0.1.21",
     "fuse.js": "^7.3.0",
     "next": "16.2.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "react-draggable": "^4.5.0",
     "sharp": "^0.34.5"
   },
   "devDependencies": {

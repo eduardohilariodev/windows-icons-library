@@ -3,13 +3,16 @@
 import type { IconEntry } from "@/lib/icons";
 import { groupByVersion } from "@/lib/icons";
 import { getVersionColor, WINDOWS_VERSIONS } from "@/lib/versions";
-import { DllSection } from "./DllSection";
+import { DllWindow } from "./DllWindow";
+import { IconCard } from "./IconCard";
+import { IconContextMenu } from "./IconContextMenu";
 
 interface IconGridProps {
   icons: IconEntry[];
+  onOpenIcon?: (icon: IconEntry, event: React.MouseEvent) => void;
 }
 
-export function IconGrid({ icons }: IconGridProps) {
+export function IconGrid({ icons, onOpenIcon }: IconGridProps) {
   const versionGroups = groupByVersion(icons);
 
   if (icons.length === 0) {
@@ -49,7 +52,27 @@ export function IconGrid({ icons }: IconGridProps) {
               </div>
             </div>
             {vg.dllGroups.map((group) => (
-              <DllSection key={group.dll} group={group} />
+              <DllWindow
+                key={group.dll}
+                dll={group.dll}
+                dllPath={group.dllPath}
+                version={vg.version}
+                icons={group.icons}
+              >
+                {group.icons.map((icon) => (
+                  <IconContextMenu
+                    key={icon.id}
+                    icon={icon}
+                    onOpen={(i) =>
+                      onOpenIcon?.(i, undefined as unknown as React.MouseEvent)
+                    }
+                  >
+                    <div>
+                      <IconCard icon={icon} onClick={onOpenIcon} />
+                    </div>
+                  </IconContextMenu>
+                ))}
+              </DllWindow>
             ))}
           </section>
         );

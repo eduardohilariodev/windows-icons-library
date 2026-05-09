@@ -7,6 +7,7 @@ import { WINDOWS_VERSIONS } from "@/lib/versions";
 import { SearchBar } from "./SearchBar";
 import { IconGrid } from "./IconGrid";
 import { VersionFilter } from "./VersionFilter";
+import { IconDetailWindow } from "./IconDetailWindow";
 
 interface IconBrowserProps {
   icons: IconEntry[];
@@ -15,6 +16,11 @@ interface IconBrowserProps {
 export function IconBrowser({ icons }: IconBrowserProps) {
   const [query, setQuery] = useState("");
   const [selectedVersions, setSelectedVersions] = useState<string[]>([]);
+  const [openIcon, setOpenIcon] = useState<IconEntry | null>(null);
+  const [clickPosition, setClickPosition] = useState<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
 
   const availableVersions = useMemo(() => {
     const slugs = new Set(icons.map((i) => i.version));
@@ -54,8 +60,20 @@ export function IconBrowser({ icons }: IconBrowserProps) {
     return result;
   }, [query, fuse, icons, selectedVersions]);
 
+  const handleOpen = (icon: IconEntry, event?: React.MouseEvent) => {
+    setOpenIcon(icon);
+    if (event) {
+      setClickPosition({ x: event.clientX - 140, y: event.clientY - 100 });
+    } else {
+      setClickPosition({
+        x: Math.round(window.innerWidth / 2 - 140),
+        y: Math.round(window.innerHeight / 2 - 200),
+      });
+    }
+  };
+
   return (
-    <>
+    <div id="desktop">
       <VersionFilter
         versions={availableVersions}
         selected={selectedVersions}
@@ -67,7 +85,12 @@ export function IconBrowser({ icons }: IconBrowserProps) {
         resultCount={filtered.length}
         totalCount={icons.length}
       />
-      <IconGrid icons={filtered} />
-    </>
+      <IconGrid icons={filtered} onOpenIcon={handleOpen} />
+      <IconDetailWindow
+        icon={openIcon}
+        onClose={() => setOpenIcon(null)}
+        initialPosition={clickPosition}
+      />
+    </div>
   );
 }

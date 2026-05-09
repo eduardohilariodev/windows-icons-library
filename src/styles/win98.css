@@ -1,0 +1,103 @@
+/* === Desktop Layout === */
+
+#desktop {
+  position: relative;
+  min-height: 100vh;
+}
+
+/* === DLL Window (static group container) === */
+
+.dll-window {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.dll-window .window-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px;
+}
+
+/* === Compact Icon Card === */
+
+.icon-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 72px;
+  padding: 4px;
+  cursor: default;
+  user-select: none;
+}
+
+.icon-card:hover {
+  background: var(--dialog-blue);
+  color: var(--dialog-blue-text);
+}
+
+.icon-card img {
+  width: 32px;
+  height: 32px;
+  image-rendering: pixelated;
+}
+
+.icon-card span {
+  font-size: 11px;
+  text-align: center;
+  margin-top: 2px;
+  word-break: break-word;
+}
+
+/* === Draggable Detail Window === */
+
+.icon-detail-window {
+  position: fixed;
+  z-index: 1000;
+  min-width: 280px;
+}
+
+.icon-detail-window .window-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+}
+
+.download-buttons {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* === Radix Context Menu (Win98 style) === */
+
+[data-radix-context-menu-content] {
+  background: var(--surface);
+  border: var(--border-width) solid;
+  border-color: var(--button-highlight) var(--button-shadow) var(--button-shadow) var(--button-highlight);
+  padding: 2px;
+  font-family: inherit;
+  font-size: 11px;
+  min-width: 160px;
+  box-shadow: 1px 1px 0 1px #000;
+}
+
+[data-radix-context-menu-item] {
+  padding: 2px 20px;
+  cursor: default;
+}
+
+[data-radix-context-menu-item][data-highlighted] {
+  background: var(--dialog-blue);
+  color: var(--dialog-blue-text);
+  outline: none;
+}
+
+[data-radix-context-menu-separator] {
+  height: 1px;
+  background: var(--button-shadow);
+  margin: 2px 0;
+}
